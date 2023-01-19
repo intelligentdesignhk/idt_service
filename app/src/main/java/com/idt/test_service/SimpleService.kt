@@ -7,21 +7,33 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Binder
-import android.os.Handler
-import android.os.IBinder
-import android.os.Messenger
+import android.os.*
 import android.util.Log
 
 
 class SimpleService : Service() {
-    inner class LocalBinder : Binder() {
-        fun getService(): SimpleService = this@SimpleService
+//    inner class LocalBinder : Binder() {
+//        fun getService(): SimpleService = this@SimpleService
+//    }
+    internal class IncomingHandler : Handler() {
+        override fun handleMessage(msg: Message) {
+            Log.e(TAG, "handleMessage: "+msg.what )
+            msg.data.keySet().forEach{
+                Log.e(TAG, "handleMessage $it: "+msg.data.getString(it) )
+            }
+//            when (msg.what) {
+//                MSG_SAY_HELLO -> Toast.makeText(
+//                    getApplicationContext(),
+//                    "hello!",
+//                    Toast.LENGTH_SHORT
+//                ).show()
+//                else -> super.handleMessage(msg)
+//            }
+        }
     }
-
     private lateinit var handler: Handler
-    private lateinit var messenger: Messenger
-    private val binder = LocalBinder()
+    private var messenger: Messenger = Messenger(IncomingHandler())
+//    private val binder = LocalBinder()
 
 
     companion object {
@@ -31,16 +43,16 @@ class SimpleService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.e("SimpleService", "onStartCommand SimpleService")
         createNotificationChannel()
-        Thread {
-            while (true) {
-                Log.e("Service", "SimpleService is running...")
-                try {
-                    Thread.sleep(2000)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-            }
-        }.start()
+//        Thread {
+//            while (true) {
+//                Log.e("Service", "SimpleService is running...")
+//                try {
+//                    Thread.sleep(2000)
+//                } catch (e: InterruptedException) {
+//                    e.printStackTrace()
+//                }
+//            }
+//        }.start()
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -51,7 +63,7 @@ class SimpleService : Service() {
 
     override fun onBind(intent: Intent): IBinder {
         Log.e("SimpleService", "onBind SimpleService")
-        return binder
+        return messenger.binder
     }
 
     override fun onDestroy() {
